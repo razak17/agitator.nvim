@@ -63,9 +63,9 @@ The selected file from another branch is then displayed in a read-only buffer.
 ## search in added lines
 
 search in added will open a telescope picker to search in lines that you've
-added compared to your git checkout: basically you search in the git diff.
+added compared to you a git revision (by default HEAD): basically you search in the git diff.
 
-- `search_in_added()`
+- `search_in_added({git_rev?})`
 
 ## time machine
 

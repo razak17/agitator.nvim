@@ -29,7 +29,7 @@ local function search_in_added_add_untracked(lines_with_numbers, opts)
         on_exit = vim.schedule_wrap(function(j, output)
             pickers
             .new(opts, {
-                prompt_title = "Search in git added",
+                prompt_title = "Search in git added compared to " .. (opts.git_rev or "HEAD"),
                 finder = finders.new_table {
                     results = lines_with_numbers,
                     entry_maker = make_entry.gen_from_vimgrep(opts),
@@ -47,7 +47,7 @@ local function search_in_added(opts)
     local lines_with_numbers = {}
     local cur_file = nil
     local cur_line = nil
-    vim.fn.jobstart("git diff-index -U0 HEAD", {
+    vim.fn.jobstart("git diff-index -U0 " .. (opts.git_rev or "HEAD"), {
         on_stdout = vim.schedule_wrap(function(j, output)
             for _, line in ipairs(output) do
                 if string.match(line, "^%+%+%+") then
