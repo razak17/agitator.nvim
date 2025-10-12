@@ -121,9 +121,6 @@ You can also change the popup width with `popup_width`. The default value is cur
 To call any function, if you use a plugin manager such as Packer, you must
 prepend `require('agitator')`. For instance `require('agitator').git_blame()`.
 
-I'm really a beginner in nvim/lua, so don't be surprised if some things are
-strangely or wrongly implemented. There are also a couple of ugly hacks. Pull
-requests are welcome. I'll do my best to fix bugs, but don't expect too much.
 
 This plugin has two dependencies: [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim/)
 and [plenary.nvim](https://github.com/nvim-lua/plenary.nvim).
