@@ -205,6 +205,12 @@ local function handle_time_machine(lines, opts)
   end
 end
 
+local function git_time_machine_copy_sha()
+  local i = vim.b.time_machine_cur_idx
+  local commit_sha = vim.b.time_machine_entries[i].sha
+  vim.fn.setreg("+", commit_sha)
+end
+
 local function git_time_machine(opts)
   local relative_fname = utils.get_relative_fname()
   local line_no = vim.fn.line(".")
@@ -230,17 +236,11 @@ local function git_time_machine(opts)
   if opts ~= nil and opts.set_custom_shortcuts ~= nil then
     opts.set_custom_shortcuts(bufnr)
   else
-    vim.keymap.set("n", "<c-p>", function()
-      require("agitator").git_time_machine_previous()
-    end, { buffer = 0 })
-    vim.keymap.set("n", "<c-n>", function()
-      require("agitator").git_time_machine_next()
-    end, { buffer = 0 })
-    vim.keymap.set("n", "<c-h>", function()
-      require("agitator").git_time_machine_copy_sha()
-    end, { buffer = 0 })
+    vim.keymap.set("n", "<c-p>", git_time_machine_previous, { buffer = 0 })
+    vim.keymap.set("n", "<c-n>", git_time_machine_next, { buffer = 0 })
+    vim.keymap.set("n", "<c-h>", git_time_machine_copy_sha, { buffer = 0 })
     vim.keymap.set("n", "q", function()
-      require("agitator").git_time_machine_quit(opts)
+      git_time_machine_quit(opts)
     end, { buffer = 0 })
   end
   vim.b.time_machine_rel_fname = relative_fname
@@ -271,12 +271,6 @@ local function git_time_machine(opts)
       end)()
     end,
   }):start()
-end
-
-local function git_time_machine_copy_sha()
-  local i = vim.b.time_machine_cur_idx
-  local commit_sha = vim.b.time_machine_entries[i].sha
-  vim.fn.setreg("+", commit_sha)
 end
 
 return {
