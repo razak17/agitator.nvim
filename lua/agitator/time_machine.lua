@@ -232,23 +232,15 @@ local function git_time_machine(opts)
     end
     vim.b.time_machine_rel_fname = relative_fname
     vim.b.time_machine_init_line_no = line_no
-    local Job = require'plenary.job'
-    local output = {}
-    Job:new {
-        command = 'git',
+    vim.system(
         -- i'd really want a plumbing command here, but i think there isn't one
         -- https://stackoverflow.com/a/29239964/516188
         -- enforce the pretty configuration in case the user customizes it: https://github.com/emmanueltouzery/agitator.nvim/issues/13
-        args = {'log', '--name-only', '--no-merges', '--follow', '--date=iso', '--pretty=medium', '--', relative_fname}, 
-        on_stdout = function(error, data, self)
-            table.insert(output, data)
-        end,
-        on_exit = function(self, code, signal)
-            vim.schedule_wrap(function()
-                handle_time_machine(output, opts)
-            end)()
-        end
-    }:start()
+        {'git', 'log', '--name-only', '--no-merges', '--follow', '--date=iso', '--pretty=medium', '--', relative_fname},
+        {text = true},
+        vim.schedule_wrap(function(res)
+            handle_time_machine(vim.split(res.stdout, "\n"), opts)
+        end))
 end
 
 local function git_time_machine_copy_sha()

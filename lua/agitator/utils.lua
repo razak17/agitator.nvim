@@ -82,30 +82,14 @@ local function fname_commit_associated_with_buffer()
 end
 
 function git_root_folder()
-  local Job = require'plenary.job'
-  local output
-  Job:new {
-    command = 'git',
-    args = {'rev-parse', '--show-toplevel'},
-    on_exit = function(self, code, signal)
-      output = self:result()[1]
-    end,
-  }:sync()
-  return output
+  return vim.trim(vim.system({'git', 'rev-parse', '--show-toplevel'}):wait().stdout)
 end
 
 function commit_head_of_branch(branch)
-  local Job = require'plenary.job'
-  local output
-  Job:new {
-    command = 'git',
-    args = {'log', branch, '-n1', '--pretty=format:"%h"', '--no-patch'},
-    on_exit = function(self, code, signal)
-      -- surely there's a better way... shouldn't get these quotes in the first place
-      output = self:result()[1]:gsub('"', '')
-    end,
-  }:sync()
-  return output
+  return vim.system({'git', 'log', branch, '-n1', '--pretty=format:"%h"', '--no-patch'})
+    :wait().stdout
+    -- surely there's a better way... shouldn't get these quotes in the first place
+    :gsub('"', '')
 end
 
 -- https://stackoverflow.com/a/34953646/516188
