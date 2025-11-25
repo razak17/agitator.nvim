@@ -116,7 +116,6 @@ end
 local function git_blame_close()
   vim.api.nvim_command("set noscrollbind")
   vim.api.nvim_command("set nocursorbind")
-  local fname = vim.fn.expand("%:p")
   vim.api.nvim_command("bd " .. vim.b.blame_buf_id)
   vim.b.blame_buf_id = nil
 end
@@ -190,10 +189,10 @@ local function git_blame(opts)
   local job_params = {
     command = "git",
     args = git_args,
-    on_stdout = function(error, data, self)
+    on_stdout = function(_, data, _)
       table.insert(output, data)
     end,
-    on_exit = function(self, code, signal)
+    on_exit = function()
       vim.schedule_wrap(function()
         handle_blame(output, opts)
       end)()
@@ -234,7 +233,7 @@ local function git_blame_commit_for_line(_opts)
   local job_params = {
     command = "git",
     args = git_args,
-    on_stdout = function(error, data, self)
+    on_stdout = function(_, data, _)
       output = data:gsub("%s.*$", "")
     end,
   }
