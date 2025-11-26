@@ -170,8 +170,6 @@ local function git_blame(opts)
     vim.cmd([[echohl WarningMsg | echo "Disabling word-wrapping to display blame" | echohl None]])
     vim.cmd("set nowrap")
   end
-  local Job = require("plenary.job")
-  local output = {}
   local relative_fname
   local buf_fname, buf_commit = utils.fname_commit_associated_with_buffer()
   if buf_fname ~= nil then
@@ -179,30 +177,25 @@ local function git_blame(opts)
   else
     relative_fname = utils.get_relative_fname()
   end
+  local git_args = { "git", "blame", relative_fname, "--line-porcelain" }
+  local job_params = { text = true }
+  if buf_commit ~= nil then
+    table.insert(git_args, vim.b.agitator_commit)
+    job_params.cwd = utils.git_root_folder()
+  end
   -- i think -p only would be maybe faster, git's output differs with
   -- -p or --line-porcelain! I mean I see different authors for different
   -- lines between these flags. And everyone matches with --line-porcelain.
   -- Also, -w, ignore whitespace, is nice, and intellij does it, but
   -- gitsigns doesn't, and i'd like to match with gitsigns.
   -- args = {'blame', relative_fname, '--line-porcelain', '-w'},
-  local git_args = { "blame", relative_fname, "--line-porcelain" }
-  local job_params = {
-    command = "git",
-    args = git_args,
-    on_stdout = function(_, data, _)
-      table.insert(output, data)
-    end,
-    on_exit = function()
-      vim.schedule_wrap(function()
-        handle_blame(output, opts)
-      end)()
-    end,
-  }
-  if buf_commit ~= nil then
-    table.insert(git_args, vim.b.agitator_commit)
-    job_params.cwd = utils.git_root_folder()
-  end
-  Job:new(job_params):start()
+  vim.system(
+    git_args,
+    job_params,
+    vim.schedule_wrap(function(res)
+      handle_blame(vim.split(res.stdout, "\n"), opts)
+    end)
+  )
 end
 
 local function git_blame_toggle(opts)
@@ -219,10 +212,10 @@ local function git_blame_commit_for_line(_opts)
   if relative_fname == nil then
     relative_fname = utils.get_relative_fname()
   end
-  local output
-  local git_args = { "blame", "-L" .. vim.fn.line(".") .. "," .. vim.fn.line("."), opts.fname or relative_fname }
+  local git_args = { "git", "blame", "-L" .. vim.fn.line(".") .. "," .. vim.fn.line("."), opts.fname or relative_fname }
   if opts.as_of_commit ~= nil then
     git_args = {
+      "git",
       "blame",
       "-L" .. vim.fn.line(".") .. "," .. vim.fn.line("."),
       opts.as_of_commit,
@@ -230,20 +223,12 @@ local function git_blame_commit_for_line(_opts)
       opts.fname or relative_fname,
     }
   end
-  local job_params = {
-    command = "git",
-    args = git_args,
-    on_stdout = function(_, data, _)
-      output = data:gsub("%s.*$", "")
-    end,
-  }
+  local params = { text = true }
   if commit ~= nil or opts.as_of_commit ~= nil then
     table.insert(git_args, commit)
-    job_params.cwd = utils.git_root_folder()
+    params.cwd = utils.git_root_folder()
   end
-  local Job = require("plenary.job")
-  Job:new(job_params):sync()
-  return output
+  return vim.system(git_args, params):wait().stdout:gsub("%s.*$", "")
 end
 
 return {

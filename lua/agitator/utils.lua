@@ -7,31 +7,17 @@ local function get_cwd()
   end
 end
 
-local function commit_head_of_branch(branch)
-  local Job = require("plenary.job")
-  local output
-  Job:new({
-    command = "git",
-    args = { "log", branch, "-n1", '--pretty=format:"%h"', "--no-patch" },
-    on_exit = function(self, _, _)
-      -- surely there's a better way... shouldn't get these quotes in the first place
-      output = self:result()[1]:gsub('"', "")
-    end,
-  }):sync()
-  return output
+function commit_head_of_branch(branch)
+  return vim
+    .system({ "git", "log", branch, "-n1", '--pretty=format:"%h"', "--no-patch" })
+    :wait()
+    .stdout
+    -- surely there's a better way... shouldn't get these quotes in the first place
+    :gsub('"', "")
 end
 
-local function git_root_folder()
-  local Job = require("plenary.job")
-  local output
-  Job:new({
-    command = "git",
-    args = { "rev-parse", "--show-toplevel" },
-    on_exit = function(self, _, _)
-      output = self:result()[1]
-    end,
-  }):sync()
-  return output
+function git_root_folder()
+  return vim.trim(vim.system({ "git", "rev-parse", "--show-toplevel" }):wait().stdout)
 end
 
 -- https://stackoverflow.com/a/34953646/516188
