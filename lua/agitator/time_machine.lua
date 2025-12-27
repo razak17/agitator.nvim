@@ -1,13 +1,4 @@
-local Str = require'plenary.strings'
 local utils = require('agitator.utils')
-
-local function force_length(msg, len)
-    if Str.strdisplaywidth(msg) > len then
-        return Str.truncate(msg, len)
-    else
-        return Str.align_str(msg, len, false)
-    end
-end
 
 local function time_machine_statusline(i, entries_count, record)
     if vim.b.width ~= vim.fn.winwidth(0) or vim.b.height ~= vim.fn.winheight(0) then
@@ -23,8 +14,8 @@ local function time_machine_statusline(i, entries_count, record)
     end
 
     local lines = {
-        force_length(record.author, vim.b.popup_width),
-        force_length(record.message, vim.b.popup_width),
+        record.author,
+        record.message,
         record.date .. " - " .. (entries_count - i + 1) .. "/" .. entries_count,
         vim.b.popup_last_line
     }
@@ -178,7 +169,6 @@ function setup_timemachine_popup(opts)
     vim.api.nvim_buf_set_option(vim.b.popup_buf, 'filetype', 'AgitatorTimeMachine')
 
     local opts = {
-        focusable = false,
         style = "minimal",
         border = "rounded",
         relative = "win",
@@ -190,6 +180,8 @@ function setup_timemachine_popup(opts)
     }
 
     vim.b.popup_win = vim.api.nvim_open_win(vim.b.popup_buf, false, opts)
+    vim.wo[vim.b.popup_win].listchars = "extends:…,precedes:…"
+    vim.wo[vim.b.popup_win].list = true
 end
 
 local function git_time_machine(opts)
