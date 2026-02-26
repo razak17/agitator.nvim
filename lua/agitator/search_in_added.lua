@@ -7,7 +7,7 @@ local make_entry = require "telescope.make_entry"
 local entry_display = require "telescope.pickers.entry_display"
 
 local function search_in_added_add_untracked(lines_with_numbers, opts)
-    vim.fn.jobstart("git ls-files . --exclude-standard --others", {
+    vim.fn.jobstart("git ls-files --full-name :/ --exclude-standard --others", {
         stdout_buffered = true,
         on_stdout = vim.schedule_wrap(function(j, output)
             for _, untracked_fname in ipairs(output) do
