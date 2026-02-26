@@ -21,7 +21,7 @@ local function detect_picker()
 end
 
 local function collect_untracked_files(git_root, lines_with_numbers, opts, callback)
-  vim.fn.jobstart("git ls-files . --exclude-standard --others", {
+  vim.fn.jobstart("git ls-files --full-name :/ --exclude-standard --others", {
     stdout_buffered = true,
     on_stdout = vim.schedule_wrap(function(_, output)
       for _, untracked_fname in ipairs(output) do
